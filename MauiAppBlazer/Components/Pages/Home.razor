@@ -1,0 +1,148 @@
+﻿@page "/"
+
+@inject MemoryGame.DataAccess.HighScoreRepository HighScoreRepository
+@inject NavigationManager NavManager
+@using System.Threading.Tasks
+
+<h3>Memory Game</h3>
+
+@if (!gameStarted)
+{
+    <div>
+        <label>Met hoeveel setjes kaarten wil je spelen? (min: 5, max: 14): </label>
+        <input type="number" @bind="amountOfPairsInput" min="5" max="14" />
+        <button @onclick="StartGame">Start Spel</button>
+    </div>
+}
+else if (gameStarted && !IsGameOver)
+{
+    <div>
+        <h4>Je speelt met @amountOfPairs setjes kaarten, totaal: @(amountOfPairs * 2) kaarten</h4>
+        <div class="game-board">
+            @for (int i = 0; i <= (game.NumberOfCards - 1); i++)
+            {
+                var j = i;
+                <button @onclick="() => FlipCard(j)" 
+                        style="background-color: @(game.GetMatchedStatus(j) || (j == firstIndex || j == secondIndex) ? game.GetCardColor(j).ToString() : "lightgray")">
+                    @(GetCardDisplay(j))
+                </button>
+            }
+        </div>
+        @if (message != null)
+        {
+            <p>@message</p>
+        }
+    </div>
+}
+
+        @if (IsGameOver)
+        {
+        <div>
+            <p>@message</p>
+            <label>Naam voor de highscore: </label>
+            <input type="text" @bind="playerName" />
+            <button @onclick="SubmitScore">Submit Score</button>
+        </div>
+        }
+
+@code {
+    private bool gameStarted = false;
+    private int amountOfPairsInput = 5;
+    private int amountOfPairs = 5;
+    private string? message = null;
+    private string playerName = "Anoniem";
+    private int? firstIndex = null;
+    private int? secondIndex = null;
+    private MemoryGame.Business.MemoryGame game;
+    private bool IsGameOver = false;
+    private int score = 0;
+
+    private void StartGame()
+    {
+        amountOfPairs = (amountOfPairsInput >= 5 && amountOfPairsInput <= 14) ? amountOfPairsInput : 5;
+        game = new MemoryGame.Business.MemoryGame(HighScoreRepository, amountOfPairs);
+        gameStarted = true;
+        message = "Memory Spel Start!";
+    }
+
+    private void FlipCard(int index)
+    {
+        
+        if (firstIndex == null)
+        {
+            firstIndex = index;
+            message = "Flip kaart " + firstIndex;
+            game.FlipCard(index);
+        }
+        else if (secondIndex == null)
+        {
+            secondIndex = index;
+            message = "Flip kaart " + firstIndex + " en " + secondIndex;
+            game.FlipCard(index);
+            CheckForMatch();
+        }
+    }
+
+    private void CheckForMatch()
+    {
+        if (firstIndex != null && secondIndex != null)
+        {
+            bool match = game.CheckForMatch(firstIndex ?? 0, secondIndex ?? 0);
+            message = match ? "Match gevonden!" : "Geen match, probeer opnieuw.";
+            PerformDelayedReset();
+            if (game.IsGameOver())
+            {
+                EndGame();
+            }
+        }
+    }
+    private async void PerformDelayedReset() {
+        await Task.Delay(300);
+        firstIndex = null;
+        secondIndex = null;
+        InvokeAsync(StateHasChanged);
+    }
+
+
+    private void EndGame()
+    {
+        IsGameOver = true;
+        score = game.EndGame();
+        message = $"Spel voorbij! Je score is: {score}. Vul je naam in voor de highscore.";
+    }
+
+    private async Task SubmitScore()
+    {
+        try
+        {
+            bool highScore = game.SaveScore(playerName, score);
+            message = highScore ? "Nieuwe highscore!" : "Geen nieuwe highscore.";
+            gameStarted = false;  // Reset game state if you want to allow replay
+            if (highScore)
+            {
+                NavManager.NavigateTo("highscore");
+            }
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+
+    }
+
+    private string GetCardDisplay(int index)
+    {
+        if (game.GetMatchedStatus(index))
+        {
+            return "M";
+        }
+        else if (index == firstIndex || index == secondIndex)
+        {
+            return "X";
+        }
+        else
+        {
+            return index.ToString();
+        }
+    }
+}

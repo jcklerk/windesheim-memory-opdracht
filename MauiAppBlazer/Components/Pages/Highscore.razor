@@ -1,0 +1,55 @@
+﻿@page "/highscore"
+@inject MemoryGame.DataAccess.HighScoreRepository HighScoreRepository
+
+
+<h3>Highscores</h3>
+
+@if (highScores == null)
+{
+    <p>Loading...</p>
+}
+else if (highScores.Count == 0)
+{
+    <p>Er zijn nog geen highscores.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Plaats</th>
+                <th>Naam</th>
+                <th>Score</th>
+                <th>Kaarten</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < highScores.Count; i++)
+            {
+                var highScore = highScores[i];
+                <tr>
+                    <td>@(i + 1)</td>
+                    <td>@highScore.PlayerName</td>
+                    <td>@highScore.Score</td>
+                    <td>@highScore.NumberOfCards</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<MemoryGame.Business.HighScore> highScores;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            highScores = await HighScoreRepository.GetHighScoresAsync();
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine("Er is een fout opgetreden bij het ophalen van de highscores: " + e.Message);
+            highScores = new List<MemoryGame.Business.HighScore>();
+        }
+    }
+}
