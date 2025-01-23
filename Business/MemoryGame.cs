@@ -16,10 +16,12 @@ namespace MemoryGame.Business
 
         public MemoryGame(IHighScoreRepository highScoreRepository, int numberOfPairs = 5)
         {
-            if (numberOfPairs < 5) {
+            if (numberOfPairs < 5)
+            {
                 throw new ArgumentException("Number of pairs must be at least 5");
             }
-            if (numberOfPairs > 14) { // there are only 14 colors in the ConsoleColor enum (excluding black and which)
+            if (numberOfPairs > 14)
+            { // there are only 14 colors in the ConsoleColor enum (excluding black and which)
                 throw new ArgumentException("Number of pairs must be at most 14");
             }
             _highScoreRepository = highScoreRepository;
@@ -30,9 +32,7 @@ namespace MemoryGame.Business
         }
 
         private List<Card> InitializeCards(int numberOfPairs)
-        {   
-            
-
+        {
             var cards = new List<Card>();
             for (int i = 0; i < numberOfPairs; i++)
             {
@@ -45,7 +45,12 @@ namespace MemoryGame.Business
 
         public bool FlipCard(int index)
         {
-            if (index < 0 || index >= _cards.Count || _cards[index].IsMatched || _cards[index].IsFlipped)
+            if (
+                index < 0
+                || index >= _cards.Count
+                || _cards[index].IsMatched
+                || _cards[index].IsFlipped
+            )
                 return false;
 
             _cards[index].IsFlipped = true;
@@ -84,10 +89,28 @@ namespace MemoryGame.Business
             var topScores = _highScoreRepository.GetHighScores();
             if (topScores.Count < 10 || score > topScores.Min(s => s.Score))
             {
-                _highScoreRepository.AddHighScore(new HighScore {Id = Guid.NewGuid(), PlayerName = playerName, Score = score, NumberOfCards = NumberOfCards});
+                _highScoreRepository.AddHighScore(
+                    new HighScore
+                    {
+                        Id = Guid.NewGuid(),
+                        PlayerName = playerName,
+                        Score = score,
+                        NumberOfCards = NumberOfCards,
+                    }
+                );
                 return true;
             }
             return false;
+        }
+
+        public List<HighScore> GetHighScores()
+        {
+            return _highScoreRepository.GetHighScores();
+        }
+
+        public async Task<List<HighScore>> GetHighScoresAsync()
+        {
+            return await _highScoreRepository.GetHighScoresAsync();
         }
     }
 }

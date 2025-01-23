@@ -6,5 +6,7 @@ namespace MemoryGame.Business
     {
         void AddHighScore(HighScore highScore);
         List<HighScore> GetHighScores();
+
+        Task<List<HighScore>> GetHighScoresAsync();
     }
 }

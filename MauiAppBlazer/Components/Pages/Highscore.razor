@@ -39,12 +39,14 @@ else
 }
 
 @code {
+    private MemoryGame.Business.MemoryGame game;
     private List<MemoryGame.Business.HighScore> highScores;
     protected override async Task OnInitializedAsync()
     {
+        game = new MemoryGame.Business.MemoryGame(HighScoreRepository);
         try
         {
-            highScores = await HighScoreRepository.GetHighScoresAsync();
+            highScores = await game.GetHighScoresAsync();
         }
         catch (Exception e)
         {

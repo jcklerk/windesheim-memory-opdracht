@@ -7,9 +7,11 @@ namespace MemoryGame.ConsoleApp
     {
         public static void DisplayHighScore()
         {
+            var repository = new MemoryGame.DataAccess.HighScoreRepository();
+            var game = new MemoryGame.Business.MemoryGame(repository);
             try
             {
-                List<HighScore> highScores = (new MemoryGame.DataAccess.HighScoreRepository()).GetHighScores();
+                List<HighScore> highScores = game.GetHighScores();
 
                 if (highScores.Count == 0)
                 {
@@ -18,7 +20,7 @@ namespace MemoryGame.ConsoleApp
                     Console.ReadKey();
                     return;
                 }
-                
+
                 Console.WriteLine("Highscores:");
                 Console.WriteLine("Plaats\tNaam\t\tScore\tKaarten");
                 int i = 0;
@@ -28,10 +30,12 @@ namespace MemoryGame.ConsoleApp
                     int countLetters = highScore.PlayerName.Count();
                     if (countLetters < 8)
                     {
-                            highScore.PlayerName += "\t";
+                        highScore.PlayerName += "\t";
                     }
-                    
-                    Console.WriteLine($"{i}\t{highScore.PlayerName}\t{highScore.Score}\t{highScore.NumberOfCards}");
+
+                    Console.WriteLine(
+                        $"{i}\t{highScore.PlayerName}\t{highScore.Score}\t{highScore.NumberOfCards}"
+                    );
                 }
                 Console.WriteLine();
             }
@@ -40,10 +44,9 @@ namespace MemoryGame.ConsoleApp
                 Console.WriteLine("Er is een fout opgetreden bij het ophalen van de highscores.");
                 Console.Error.WriteLine(e.Message);
             }
-            
+
             Console.WriteLine("Druk op een toets om terug te gaan.");
             Console.ReadKey();
-
         }
     }
 }
