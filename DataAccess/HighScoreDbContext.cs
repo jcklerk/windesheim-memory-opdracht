@@ -55,7 +55,7 @@ namespace MemoryGame.DataAccess
                 Database.ExecuteSqlRaw(
                     @"
                     CREATE TABLE HighScores (
-                        Id INT PRIMARY KEY AUTOINCREMENT,
+                        Id TINYTEXT PRIMARY KEY,
                         Score INT NOT NULL,
                         PlayerName TINYTEXT NOT NULL,
                         NumberOfCards INT NOT NULL,
